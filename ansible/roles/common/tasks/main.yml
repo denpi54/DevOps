@@ -1,0 +1,29 @@
+- name: Update apt cache and install base packages
+  apt:
+    name:
+      - curl
+      - vim
+      - htop
+      - git
+      - ufw
+      - apt-transport-https
+      - ca-certificates
+    state: present
+    update_cache: yes
+
+- name: Disable password auth for SSH
+  lineinfile:
+    path: /etc/ssh/sshd_config
+    regexp: '^PasswordAuthentication'
+    line: 'PasswordAuthentication no'
+  notify: Restart ssh
+
+- name: Ensure timezone Europe/Berlin
+  timezone:
+    name: Europe/Berlin
+
+handlers:
+  - name: Restart ssh
+    service:
+      name: ssh
+      state: restarted

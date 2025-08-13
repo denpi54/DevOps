@@ -1,0 +1,21 @@
+- name: Install node_exporter binary
+  shell: |
+    set -eux
+    version="1.8.1"
+    cd /usr/local/bin
+    curl -LO https://github.com/prometheus/node_exporter/releases/download/v${version}/node_exporter-${version}.linux-amd64.tar.gz
+    tar xzf node_exporter-${version}.linux-amd64.tar.gz --strip 1
+    useradd --no-create-home --shell /usr/sbin/nologin nodeexp || true
+    cat >/etc/systemd/system/node_exporter.service <<'EOF'
+    [Unit]
+    Description=Node Exporter
+    [Service]
+    User=nodeexp
+    ExecStart=/usr/local/bin/node_exporter
+    [Install]
+    WantedBy=multi-user.target
+    EOF
+    systemctl daemon-reload
+    systemctl enable --now node_exporter
+  args:
+    creates: /etc/systemd/system/node_exporter.service

@@ -1,0 +1,15 @@
+- name: Install Kubernetes binaries (worker)
+  shell: |
+    set -eux
+    curl -fsSLo /usr/share/keyrings/kubernetes-archive-keyring.gpg https://pkgs.k8s.io/core:/stable:/v1.30/deb/Release.key
+    echo "deb [signed-by=/usr/share/keyrings/kubernetes-archive-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.30/deb/ /" > /etc/apt/sources.list.d/kubernetes.list
+    apt-get update
+    apt-get install -y kubelet kubeadm kubectl
+    apt-mark hold kubelet kubeadm kubectl
+  args:
+    creates: /usr/bin/kubeadm
+
+- name: Wait for join command on master and join cluster
+  shell: scp -o StrictHostKeyChecking=no {{ groups['master'][0] }}:/tmp/kube_join.sh /tmp/kube_join.sh && bash /tmp/kube_join.sh
+  args:
+    creates: /etc/kubernetes/kubelet.conf

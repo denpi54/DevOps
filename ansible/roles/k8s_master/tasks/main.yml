@@ -1,0 +1,31 @@
+- name: Install Kubernetes binaries
+  shell: |
+    set -eux
+    curl -fsSLo /usr/share/keyrings/kubernetes-archive-keyring.gpg https://pkgs.k8s.io/core:/stable:/v1.30/deb/Release.key
+    echo "deb [signed-by=/usr/share/keyrings/kubernetes-archive-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.30/deb/ /" > /etc/apt/sources.list.d/kubernetes.list
+    apt-get update
+    apt-get install -y kubelet kubeadm kubectl
+    apt-mark hold kubelet kubeadm kubectl
+  args:
+    creates: /usr/bin/kubeadm
+
+- name: Initialize Kubernetes master (kubeadm)
+  shell: kubeadm init --pod-network-cidr=192.168.0.0/16
+  args:
+    creates: /etc/kubernetes/admin.conf
+
+- name: Setup kubeconfig for deployer
+  become_user: "{{ ansible_user }}"
+  shell: |
+    mkdir -p $HOME/.kube
+    sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
+    sudo chown $(id -u):$(id -g) $HOME/.kube/config
+
+- name: Install Calico CNI
+  become_user: "{{ ansible_user }}"
+  shell: kubectl apply -f https://raw.githubusercontent.com/projectcalico/calico/v3.27.3/manifests/calico.yaml
+
+- name: Create join command and save to /tmp/kube_join.sh
+  shell: kubeadm token create --print-join-command > /tmp/kube_join.sh
+  args:
+    creates: /tmp/kube_join.sh

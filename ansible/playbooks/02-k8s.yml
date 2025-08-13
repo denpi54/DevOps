@@ -1,0 +1,5 @@
+- hosts: k8s
+  become: true
+  roles:
+    - { role: k8s_master, when: "'master' in group_names" }
+    - { role: k8s_worker, when: "'workers' in group_names" }

@@ -1,0 +1,16 @@
+- name: Install Docker using get.docker.com
+  shell: curl -fsSL https://get.docker.com | sh
+  args:
+    creates: /usr/bin/docker
+
+- name: Add deployer to docker group
+  user:
+    name: "{{ ansible_user }}"
+    groups: docker
+    append: yes
+
+- name: Enable and start docker
+  systemd:
+    name: docker
+    enabled: yes
+    state: started

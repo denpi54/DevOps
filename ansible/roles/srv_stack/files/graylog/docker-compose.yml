@@ -1,0 +1,28 @@
+version: '3.8'
+services:
+  mongodb:
+    image: mongo:6
+    volumes: ["mongo:/data/db"]
+
+  opensearch:
+    image: opensearchproject/opensearch:2.10.0
+    environment:
+      - discovery.type=single-node
+      - plugins.security.disabled=true
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    volumes: ["osdata:/usr/share/opensearch/data"]
+
+  graylog:
+    image: graylog/graylog:5.2
+    depends_on: [mongodb, opensearch]
+    environment:
+      - GRAYLOG_HTTP_EXTERNAL_URI=http://REPLACE_WITH_SRV_IP:9000/
+      - GRAYLOG_PASSWORD_SECRET=REPLACE_WITH_SECRET
+      - GRAYLOG_ROOT_PASSWORD_SHA2=REPLACE_WITH_SHA2
+    ports: ["9000:9000", "12201:12201/udp", "1514:1514/udp"]
+volumes:
+  mongo: {}
+  osdata: {}

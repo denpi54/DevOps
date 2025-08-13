@@ -1,0 +1,29 @@
+image:
+  repository: registry.example.com/demo/django
+  tag: "0.1.0"
+  pullPolicy: IfNotPresent
+
+postgres:
+  image: postgres:16
+  storage: 5Gi
+  username: app
+  database: appdb
+  password: changeme
+
+ingress:
+  enabled: true
+  host: app.example.test
+  tls: false
+
+service:
+  type: ClusterIP
+  port: 8000
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 256Mi
+  limits:
+    cpu: 500m
+    memory: 512Mi
+replicaCount: 1

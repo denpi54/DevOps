@@ -1,0 +1,5 @@
+- hosts: srv
+  become: true
+  roles:
+    - exporters
+    - srv_stack

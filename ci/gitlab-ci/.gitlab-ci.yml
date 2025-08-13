@@ -1,0 +1,30 @@
+stages: [build, push, deploy]
+
+variables:
+  IMAGE: $CI_REGISTRY_IMAGE/app
+
+build:
+  stage: build
+  script:
+    - docker build -t $IMAGE:${CI_COMMIT_TAG:-$CI_COMMIT_SHORT_SHA} .
+  only: [branches, tags]
+  tags: [docker]
+
+push:
+  stage: push
+  script:
+    - echo $CI_REGISTRY_PASSWORD | docker login -u $CI_REGISTRY_USER --password-stdin $CI_REGISTRY
+    - docker push $IMAGE:${CI_COMMIT_TAG:-$CI_COMMIT_SHORT_SHA}
+  needs: [build]
+  only: [branches, tags]
+
+deploy:
+  stage: deploy
+  image: alpine/helm:3.14.4
+  script: |
+    mkdir -p ~/.kube
+    echo "$KUBECONFIG_FILE_B64" | base64 -d > ~/.kube/config
+    helm upgrade --install demo ./helm/django-pg       --namespace default       --set image.repository=$IMAGE       --set image.tag=${CI_COMMIT_TAG:-$CI_COMMIT_SHORT_SHA}       --set ingress.host=$INGRESS_HOST
+  environment: production
+  needs: [push]
+  only: [tags]

@@ -1,0 +1,25 @@
+- name: Copy monitoring docker-compose
+  copy:
+    src: files/monitoring/docker-compose.yml
+    dest: /opt/monitoring/docker-compose.yml
+- name: Copy monitoring config files
+  copy:
+    src: files/monitoring/
+    dest: /opt/monitoring/
+    remote_src: yes
+- name: Start monitoring stack (docker compose)
+  shell: |
+    cd /opt/monitoring
+    docker compose up -d
+  args:
+    creates: /opt/monitoring/.monitoring_started
+- name: Copy graylog docker-compose
+  copy:
+    src: files/graylog/docker-compose.yml
+    dest: /opt/graylog/docker-compose.yml
+- name: Start graylog stack
+  shell: |
+    cd /opt/graylog
+    docker compose up -d
+  args:
+    creates: /opt/graylog/.graylog_started

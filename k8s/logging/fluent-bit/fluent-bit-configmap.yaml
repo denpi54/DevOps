@@ -1,0 +1,33 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: fluent-bit-config
+  namespace: kube-system
+data:
+  fluent-bit.conf: |
+    [SERVICE]
+        Parsers_File  parsers.conf
+        Flush         1
+        Daemon        Off
+    [INPUT]
+        Name              tail
+        Path              /var/log/containers/*app*.log
+        Tag               k8s.app.*
+        Parser            docker
+        Mem_Buf_Limit     50MB
+        Skip_Long_Lines   On
+    [FILTER]
+        Name              kubernetes
+        Match             k8s.app.*
+        Merge_Log         On
+        Keep_Log          Off
+    [OUTPUT]
+        Name  gelf
+        Match k8s.app.*
+        Host  REPLACE_WITH_SRV_IP
+        Port  12201
+        Mode  udp
+  parsers.conf: |
+    [PARSER]
+        Name        docker
+        Format      json

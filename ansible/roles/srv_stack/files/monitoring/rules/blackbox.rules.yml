@@ -1,0 +1,21 @@
+groups:
+- name: app-probe
+  rules:
+  - alert: AppDown
+    expr: probe_success == 0
+    for: 2m
+    labels: { severity: critical }
+    annotations:
+      summary: "App is DOWN on {{ $labels.instance }}"
+  - alert: SlowResponse
+    expr: probe_duration_seconds > 2
+    for: 5m
+    labels: { severity: warning }
+    annotations:
+      summary: "Slow response >2s"
+  - alert: SslCertExpiring
+    expr: (probe_ssl_earliest_cert_expiry - time()) < 86400 * 7
+    for: 10m
+    labels: { severity: warning }
+    annotations:
+      summary: "TLS cert expires soon"
