@@ -26,6 +26,6 @@ services:
     image: grafana/grafana:latest
     environment:
       - GF_SECURITY_ADMIN_USER=admin
-      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD:?задайте GRAFANA_ADMIN_PASSWORD}
     ports: ["3000:3000"]
     restart: unless-stopped
